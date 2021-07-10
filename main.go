@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -241,6 +242,58 @@ func main() {
 		json.NewEncoder(rw).Encode(TortoMap(newTor))
 	}).Methods(http.MethodPost)
 
+	Delete := router.PathPrefix("/delete").Subrouter()
+	Delete.HandleFunc("/ip/{ip}", func(rw http.ResponseWriter, r *http.Request) {
+		newreq := strings.Split(mux.Vars(r)["ip"], ",")
+		log.Info("Delete tor circuit by ip")
+		for i, v := range torList {
+			for _, v2 := range newreq {
+				if v.IPAddr == v2 {
+					torList = RemoveTorList(torList, i)
+				}
+			}
+		}
+
+		rw.Header().Set("Access-Control-Allow-Origin", "*")
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		json.NewEncoder(rw).Encode(TortoMap(torList))
+	}).Methods(http.MethodPost)
+
+	Delete.HandleFunc("/ip/country/{country}", func(rw http.ResponseWriter, r *http.Request) {
+		newreq := strings.Split(mux.Vars(r)["country"], ",")
+		log.Info("Delete tor circuit by country")
+		for i, v := range torList {
+			for _, v2 := range newreq {
+				if v.Country == v2 {
+					torList = RemoveTorList(torList, i)
+				}
+			}
+		}
+
+		rw.Header().Set("Access-Control-Allow-Origin", "*")
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		json.NewEncoder(rw).Encode(TortoMap(torList))
+	}).Methods(http.MethodPost)
+
+	Delete.HandleFunc("/ip/city/{city}", func(rw http.ResponseWriter, r *http.Request) {
+		newreq := strings.Split(mux.Vars(r)["city"], ",")
+		log.Info("Delete tor circuit by city")
+		for i, v := range torList {
+			for _, v2 := range newreq {
+				if v.City == v2 {
+					torList = RemoveTorList(torList, i)
+				}
+			}
+		}
+
+		rw.Header().Set("Access-Control-Allow-Origin", "*")
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		json.NewEncoder(rw).Encode(TortoMap(torList))
+	}).Methods(http.MethodPost)
+
 	router.Use(muxlogrus.NewLogger().Middleware)
 	go http.ListenAndServe(":"+*RestAPIPort, router)
 	go http.ListenAndServe(":"+*ProxyPort, proxy)
@@ -258,6 +311,10 @@ func main() {
 	}()
 
 	<-shutdown
+}
+
+func RemoveTorList(s []TorStruct, index int) []TorStruct {
+	return append(s[:index], s[index+1:]...)
 }
 
 type IpinfoIo struct {

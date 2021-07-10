@@ -1,0 +1,40 @@
+# Tor state file last generated on 2021-07-10 13:49:23 local time
+# Other times below are in UTC
+# You *do not* need to edit this file.
+
+CircuitBuildTimeBin 675 1
+CircuitBuildTimeBin 715 1
+CircuitBuildTimeBin 805 1
+CircuitBuildTimeBin 825 1
+CircuitBuildTimeBin 835 1
+CircuitBuildTimeBin 1065 1
+CircuitBuildTimeBin 1175 1
+CircuitBuildTimeBin 1195 1
+CircuitBuildTimeBin 1455 1
+CircuitBuildTimeBin 2875 1
+CircuitBuildTimeBin 11165 1
+Dormant 0
+Guard in=default rsa_id=FFD4B4D34EEABF2B56F2EE3182A01D0749E30A43 nickname=kayantonelli sampled_on=2021-07-08T20:32:13 sampled_idx=0 sampled_by=0.4.6.5 listed=1 confirmed_on=2021-07-08T08:48:44 confirmed_idx=0 pb_use_attempts=1.000000 pb_use_successes=1.000000 pb_circ_attempts=11.000000 pb_circ_successes=11.000000 pb_successful_circuits_closed=11.000000
+Guard in=default rsa_id=9DA5284A51021A711ECAA677C81E5408222B9F2A nickname=Bifrost sampled_on=2021-07-09T09:13:57 sampled_idx=1 sampled_by=0.4.6.5 listed=1 confirmed_on=2021-07-08T06:07:33 confirmed_idx=2
+Guard in=default rsa_id=AAC9F9AD5CE7E065C4EE5FA7ACF511F6389FCFA3 nickname=zitar sampled_on=2021-07-01T06:54:57 sampled_idx=2 sampled_by=0.4.6.5 listed=1 confirmed_on=2021-07-09T23:54:24 confirmed_idx=1
+Guard in=default rsa_id=EE4AF632058F0734C1426B1AD689F47445CA2056 nickname=rinderwahnRelay7L sampled_on=2021-07-05T18:33:52 sampled_idx=3 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=0C3D5E19E3C75B505C8ACD26F89DCA2DF970553E nickname=HORUS1 sampled_on=2021-07-06T18:17:59 sampled_idx=4 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=A9F5135AE18C7E25C7C79117CD8C7619BFEB85ED nickname=herlitzka sampled_on=2021-06-30T12:57:25 sampled_idx=5 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=AF75670FD4F702655DF4B6A477CB488EDD1B87F9 nickname=bernie4president sampled_on=2021-07-05T22:31:29 sampled_idx=6 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=AE95BDA37A5BB4685FEBB7F06649D6CE949B5316 nickname=Unnamed sampled_on=2021-07-04T12:54:41 sampled_idx=7 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=AD19490C7DBB26D3A68EFC824F67E69B0A96E601 nickname=sputnik sampled_on=2021-06-30T16:15:26 sampled_idx=8 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=4BB4DF96632419BA0C9A6D6AC1F79AC59F629865 nickname=crypt0Dude01 sampled_on=2021-07-05T17:15:13 sampled_idx=9 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=CD5316A75554C2DADB87EF3624E95D848C309CE8 nickname=Assange003ru2 sampled_on=2021-07-03T03:52:19 sampled_idx=10 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=75A931404453030821C547A4FAA9094A06C48C7A nickname=Tiberius sampled_on=2021-07-10T01:12:49 sampled_idx=11 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=F7B8A4B5F16ECDF6CA626F96F4E3C219D1A664EC nickname=kerneloopsRelay sampled_on=2021-07-03T04:58:29 sampled_idx=12 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=9E1E4F5B5F94812D02C4D18CB4086CE71CA5C614 nickname=torpidsDEhetzner1 sampled_on=2021-07-06T04:26:57 sampled_idx=13 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=79B207AD51842FA215D956B9307B3D01CD347368 nickname=1d1dchang3th3c0nf1g sampled_on=2021-07-02T22:07:05 sampled_idx=14 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=B74DABBE248B935CDC1038CD5C9280878C8C94E7 nickname=sonofgodness sampled_on=2021-07-09T05:52:17 sampled_idx=15 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=7997C3FC88B02A2C6FEF96C5F5B5C50DD7DA2E2C nickname=Poseidon sampled_on=2021-07-04T08:07:34 sampled_idx=16 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=ACE420872AF1F8A7E064403D92669D14C5CE74AE nickname=qwertz1 sampled_on=2021-07-10T01:25:38 sampled_idx=17 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=2E72D0BE9C61965E274E18A6C272F026623A2548 nickname=WaveNetRelay sampled_on=2021-07-03T17:44:17 sampled_idx=18 sampled_by=0.4.6.5 listed=1
+Guard in=default rsa_id=8ADE13FE81E95717711438D3ABD0402031C80F31 nickname=LittleSister sampled_on=2021-07-05T23:38:49 sampled_idx=19 sampled_by=0.4.6.5 listed=1
+LastWritten 2021-07-10 06:49:23
+MinutesSinceUserActivity 1
+TorVersion Tor 0.4.6.5
+TotalBuildTimes 11
