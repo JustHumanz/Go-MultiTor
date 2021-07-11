@@ -3,24 +3,25 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"io"
 	"io/ioutil"
-	"math/rand"
+	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
+	"path"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/cretz/bine/tor"
-	"github.com/elazarl/goproxy"
 	"github.com/gorilla/mux"
 	muxlogrus "github.com/pytimer/mux-logrus"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/proxy"
 )
 
 type TorStruct struct {
@@ -29,7 +30,11 @@ type TorStruct struct {
 	IPAddr  string
 	Country string
 	City    string
+	Load    int
+	Active  bool
 }
+
+const InternalTcpLB = "localhost:1412"
 
 func (p *TorStruct) AddCountry(new string) *TorStruct {
 	p.Country = new
@@ -52,121 +57,7 @@ var RestAPIPort = flag.String("api", "2525", "rest api prot")
 var ifconfig = "https://ipinfo.io"
 var PortUsage = 9090
 var ipInfoOri IpinfoIo
-
-func initTor(n int) ([]TorStruct, error) {
-	var TorList []TorStruct
-	var wg sync.WaitGroup
-	for i := PortUsage; i < PortUsage+n; i++ {
-		wg.Add(1)
-
-		go func(wg *sync.WaitGroup, j int) {
-			defer wg.Done()
-			Port := strconv.Itoa(j)
-			Time := *renewIP * 60
-			Args := []string{"SOCKSPort", Port, "MaxCircuitDirtiness", strconv.Itoa(Time)}
-			if *exitNode != "" {
-				Args = append(Args, "StrictNodes", "1", "ExitNodes", "{"+*exitNode+"}")
-			}
-
-			t, err := tor.Start(nil, &tor.StartConf{
-				ExePath:           *torPath,
-				ExtraArgs:         Args,
-				EnableNetwork:     true,
-				RetainTempDataDir: false,
-			})
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			log.WithFields(log.Fields{
-				"Args": Args,
-			}).Info("Successfully create new tor circuit")
-
-			dialSocksProxy, err := proxy.SOCKS5("tcp", *hostNode+":"+Port, nil, proxy.Direct)
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			tr := &http.Transport{Dial: dialSocksProxy.Dial}
-
-			// Create client
-			myClient := &http.Client{
-				Transport: tr,
-				Timeout:   1 * time.Minute,
-			}
-			res, err := myClient.Get(ifconfig)
-			if err != nil {
-				log.Error("ignoring node ", err)
-				return
-			}
-
-			defer res.Body.Close()
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				log.Error("ignoring node ", err)
-				return
-			}
-			var ipInfo IpinfoIo
-
-			json.Unmarshal(body, &ipInfo)
-
-			log.WithFields(log.Fields{
-				"RealIP":  ipInfoOri.IP,
-				"TorIP":   ipInfo.IP,
-				"Country": ipInfo.Country,
-			}).Info("Testing tor circuit")
-
-			TorList = append(TorList, TorStruct{
-				TorList: t,
-				Port:    Port,
-				Country: ipInfo.Country,
-				IPAddr:  ipInfo.IP,
-				City:    ipInfo.City,
-			})
-		}(&wg, i)
-
-	}
-	wg.Wait()
-	PortUsage = PortUsage + n
-	return TorList, nil
-}
-
-func CurlTor(s string, p TorStruct) (*http.Response, error) {
-	dialSocksProxy, err := proxy.SOCKS5("tcp", *hostNode+":"+p.Port, nil, proxy.Direct)
-	if err != nil {
-		return nil, err
-	}
-	tr := &http.Transport{Dial: dialSocksProxy.Dial}
-
-	// Create client
-	myClient := &http.Client{
-		Transport: tr,
-		Timeout:   2 * time.Minute,
-	}
-	res, err := myClient.Get(s)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-
-}
-
-func TortoMap(p []TorStruct) map[int]interface{} {
-	A := make(map[int]interface{})
-	for i, v := range p {
-		A[i] = map[string]interface{}{
-			"IP Address": v.IPAddr,
-			"Socks5":     *hostNode + ":" + v.Port,
-			"County":     v.Country,
-			"City":       v.City,
-		}
-	}
-	return A
-}
-
-func (p TorStruct) DeleteCircuit() {
-	p.TorList.Close()
-}
+var privoxyConf string
 
 func init() {
 	flag.Parse()
@@ -184,6 +75,35 @@ func init() {
 	}
 	json.Unmarshal(bodyNormal, &ipInfoOri)
 
+	pathnow, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+	}
+
+	pathnow += "/privoxy"
+	var filepath = path.Join(pathnow, "/config.template")
+
+	privoxyConf = pathnow + "/privoxy.conf"
+	f, err := os.OpenFile(privoxyConf, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	tmpl, err := template.ParseFiles(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = tmpl.Execute(f, map[string]interface{}{
+		"PrivoxyTor":     InternalTcpLB,
+		"PrivoxyConf":    pathnow,
+		"PrivoxyListen":  "localhost:" + *ProxyPort,
+		"PrivoxyLog":     pathnow,
+		"PrivoxyLogName": time.Now().Format("2006-01-02") + ".log",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
@@ -194,20 +114,22 @@ func main() {
 	log.WithFields(log.Fields{
 		"Tor circuit": len(torList),
 	}).Info("Done testing tor circuit")
-	proxy := goproxy.NewProxyHttpServer()
-	proxy.Verbose = true
-
-	proxy.OnRequest().DoFunc(
-		func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
-			res, err := CurlTor(r.URL.String(), torList[rand.Intn(len(torList))])
-			if err != nil {
-				log.Error(err)
-			}
-			return r, res
-		})
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Access-Control-Allow-Origin", "*")
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		json.NewEncoder(rw).Encode(map[string]interface{}{
+			"Date": time.Now(),
+			"Proxy": map[string]interface{}{
+				"Socks5": "socks5://" + InternalTcpLB,
+				"HTTP":   "http://" + *hostNode + ":" + *ProxyPort,
+			},
+		})
+	})
+
+	router.HandleFunc("/info", func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Access-Control-Allow-Origin", "*")
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusOK)
@@ -295,9 +217,64 @@ func main() {
 	}).Methods(http.MethodPost)
 
 	router.Use(muxlogrus.NewLogger().Middleware)
-	go http.ListenAndServe(":"+*RestAPIPort, router)
-	go http.ListenAndServe(":"+*ProxyPort, proxy)
 
+	go func() {
+		listener, err := net.Listen("tcp", InternalTcpLB)
+		if err != nil {
+			panic(err)
+		}
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				log.Error("error accepting connection ", err)
+				continue
+			}
+			go func() {
+				TorCir := GetTorLB(torList)
+				addr := "localhost:" + TorCir.Port
+				log.WithFields(log.Fields{
+					"Tor IP":         TorCir.IPAddr,
+					"Source Address": conn.LocalAddr().String(),
+					"Socks5 Address": addr,
+					"Load":           TorCir.Load,
+				}).Info("Tcp load balancer")
+
+				conn2, err := net.DialTimeout("tcp", addr, 10*time.Second)
+				if err != nil {
+					log.Error("error dialing remote addr ", err)
+					log.Info("Deleting dirty circuit")
+					for i, v := range torList {
+						if v.IPAddr == TorCir.IPAddr {
+							torList = RemoveTorList(torList, i)
+						}
+					}
+					log.Info("Request new circuit")
+					newTor, err := initTor(1)
+					if err != nil {
+						log.Error(err)
+						return
+					}
+					torList = append(torList, newTor...)
+					return
+				}
+				go io.Copy(conn2, conn)
+				io.Copy(conn, conn2)
+				conn2.Close()
+				conn.Close()
+				TorCir.SetActive(false)
+			}()
+		}
+
+	}()
+	go http.ListenAndServe(":"+*RestAPIPort, router)
+
+	cmd := exec.Command("/usr/bin/privoxy", "--no-daemon", privoxyConf)
+	log.Printf("Running privoxy...")
+	err = cmd.Start()
+	if err != nil {
+		log.Error(err)
+	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	shutdown := make(chan int)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
@@ -307,23 +284,9 @@ func main() {
 			v.DeleteCircuit()
 		}
 		log.Warn("Shutting down...")
+		syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 		shutdown <- 1
 	}()
 
 	<-shutdown
-}
-
-func RemoveTorList(s []TorStruct, index int) []TorStruct {
-	return append(s[:index], s[index+1:]...)
-}
-
-type IpinfoIo struct {
-	IP       string `json:"ip"`
-	City     string `json:"city"`
-	Region   string `json:"region"`
-	Country  string `json:"country"`
-	Loc      string `json:"loc"`
-	Org      string `json:"org"`
-	Timezone string `json:"timezone"`
-	Readme   string `json:"readme"`
 }

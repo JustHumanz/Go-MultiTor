@@ -1,1 +1,3 @@
-data-dir
+data-dir*/
+test*/
+*.log
