@@ -3,7 +3,7 @@ Multitor with golang
 
 
 ### Purpose
-this tools was inspired by [multitor](https://github.com/trimstray/multitor),but multitor was not very scalable and have poor performance in potato device
+this tools was inspired by [multitor](https://github.com/trimstray/multitor),but multitor was not very scalable with docker and have issuse with high memory usage 
 
 
 ### Features
