@@ -50,10 +50,9 @@ var renewIP = flag.Int("time", 10, "duration of tor ip address")
 var exitNode = flag.String("exitnode", "", "specific country torCircuit")
 var hostNode = flag.String("host", "0.0.0.0", "hostname or ip address")
 var ProxyPort = flag.String("proxy", "8080", "http proxy port")
-var RestAPIPort = flag.String("api", "2525", "rest api prot")
+var RestAPIPort = flag.String("api", "2525", "rest api port")
 var Privoxy = flag.String("privoxy", "/usr/bin/privoxy", "privoxy binary file")
 var socksLBPort = flag.String("lb", "1412", "socks5 load balancing port")
-
 var ifconfig = "https://ipinfo.io"
 var PortUsage = 9090
 var ipInfoOri IpinfoIo

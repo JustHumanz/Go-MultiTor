@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"math/rand"
@@ -29,7 +30,7 @@ func initTor(n int) ([]TorStruct, error) {
 				Args = append(Args, "StrictNodes", "1", "ExitNodes", "{"+*exitNode+"}")
 			}
 
-			t, err := tor.Start(nil, &tor.StartConf{
+			t, err := tor.Start(context.Background(), &tor.StartConf{
 				ExePath:           *torPath,
 				ExtraArgs:         Args,
 				EnableNetwork:     true,
