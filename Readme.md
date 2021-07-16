@@ -44,6 +44,13 @@ Internet────────────────────►│  HTTP
                                                                                                            
 
 ```
+Create a bunch of tor circuit > load balancing theme with round robin > serve as http proxy with privoxy  
+then i create controller,role of controller is create/delete tor circuit, maybe in next update i will health check for every single tor circuit
+
+### Requirement
+- tor
+- go1.16.5 linux/amd64
+- privoxy
 
 ### Features
 - [x] Scalable tor circuit
