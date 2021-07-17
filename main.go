@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -57,10 +59,21 @@ var ifconfig = "https://ipinfo.io"
 var PortUsage = 9090
 var ipInfoOri IpinfoIo
 var privoxyConf string
+var acessKey = flag.String("key", "", "add api key,if key empty key will be created")
+
+var who, _ = base64.StdEncoding.DecodeString(img)
 
 func init() {
 	flag.Parse()
+	Secret := ""
+	if *acessKey == "" {
+		Secret = RandStringBytes(32)
+	} else {
+		Secret = *acessKey
+	}
+
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
+	log.Info("Aceess key ", Secret, " add this key into http header as 'access_key'")
 
 	myNormalClient := &http.Client{}
 	res, err := myNormalClient.Get(ifconfig)
@@ -136,8 +149,13 @@ func main() {
 	})
 
 	router.HandleFunc("/add/{new:[1-9]}", func(rw http.ResponseWriter, r *http.Request) {
-		newreq := mux.Vars(r)["new"]
+		if r.Header.Get("access_key") == "" {
+			rw.WriteHeader(http.StatusUnauthorized)
+			rw.Write(who)
+			return
+		}
 
+		newreq := mux.Vars(r)["new"]
 		reqint, err := strconv.Atoi(newreq)
 		if err != nil {
 			log.Error(err)
@@ -180,6 +198,12 @@ func main() {
 
 	Delete := router.PathPrefix("/delete").Subrouter()
 	Delete.HandleFunc("/ip/{ip}", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("access_key") == "" {
+			rw.WriteHeader(http.StatusUnauthorized)
+			rw.Write(who)
+			return
+		}
+
 		newreq := strings.Split(mux.Vars(r)["ip"], ",")
 		log.Info("Delete tor circuit by ip")
 		for i, v := range torList {
@@ -197,6 +221,12 @@ func main() {
 	}).Methods(http.MethodPost)
 
 	Delete.HandleFunc("/ip/country/{country:}", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("access_key") == "" {
+			rw.WriteHeader(http.StatusUnauthorized)
+			rw.Write(who)
+			return
+		}
+
 		newreq := strings.Split(mux.Vars(r)["country"], ",")
 		log.Info("Delete tor circuit by country")
 		for i, v := range torList {
@@ -214,6 +244,12 @@ func main() {
 	}).Methods(http.MethodPost)
 
 	Delete.HandleFunc("/ip/city/{city}", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("access_key") == "" {
+			rw.WriteHeader(http.StatusUnauthorized)
+			rw.Write(who)
+			return
+		}
+
 		newreq := strings.Split(mux.Vars(r)["city"], ",")
 		log.Info("Delete tor circuit by city")
 		for i, v := range torList {
@@ -304,4 +340,14 @@ func main() {
 	}()
 
 	<-shutdown
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789=-_"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }
