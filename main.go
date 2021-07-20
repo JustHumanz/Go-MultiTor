@@ -47,7 +47,7 @@ func (p *TorStruct) AddIP(new string) *TorStruct {
 
 var torPath = flag.String("tor", "/usr/bin/tor", "path of tor binary file")
 var torCircuit = flag.Int("circuit", 10, "total of torCircuit")
-var renewIP = flag.Int("time", 10, "duration of tor ip address")
+var renewIP = flag.Int("lifespan", 10, "duration of tor ip address")
 var exitNode = flag.String("exitnode", "", "specific country torCircuit")
 var hostNode = flag.String("host", "0.0.0.0", "hostname or ip address")
 var ProxyPort = flag.String("proxy", "8080", "http proxy port")
