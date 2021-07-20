@@ -50,22 +50,12 @@ func initTor(n int) ([]TorStruct, error) {
 				return
 			}
 			tr := &http.Transport{Dial: dialSocksProxy.Dial}
-
-			// Create client
-			myClient := &http.Client{
+			body, _, err := Curl(&http.Client{
 				Transport: tr,
 				Timeout:   1 * time.Minute,
-			}
-			res, err := myClient.Get(ifconfig)
+			})
 			if err != nil {
-				log.Error("ignoring node ", err)
-				return
-			}
-
-			defer res.Body.Close()
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				log.Error("ignoring node ", err)
+				log.Error(err)
 				return
 			}
 			var ipInfo IpinfoIo
@@ -174,4 +164,19 @@ type IpinfoIo struct {
 	Org      string `json:"org"`
 	Timezone string `json:"timezone"`
 	Readme   string `json:"readme"`
+}
+
+func Curl(c *http.Client) ([]byte, *http.Response, error) {
+	res, err := c.Get(ifconfig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, res, nil
 }

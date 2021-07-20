@@ -59,4 +59,4 @@ then i create controller,the role of controller is create/delete tor circuit
 - [x] Scoks5 load balancer
 - [x] Rest API use authentication
 - [ ] Multiple tor circuit nodes
-- [ ] Tor health check
+- [x] Tor health check

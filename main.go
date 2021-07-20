@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -75,13 +74,7 @@ func init() {
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
 	log.Info("Aceess key ", Secret, " add this key into http header as 'access_key'")
 
-	myNormalClient := &http.Client{}
-	res, err := myNormalClient.Get(ifconfig)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer res.Body.Close()
-	bodyNormal, err := ioutil.ReadAll(res.Body)
+	bodyNormal, _, err := Curl(&http.Client{})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -148,7 +141,7 @@ func main() {
 		json.NewEncoder(rw).Encode(TortoMap(torList))
 	})
 
-	router.HandleFunc("/add/{new:[1-9]}", func(rw http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/add/{new:[0-9]+}", func(rw http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("access_key") == "" {
 			rw.WriteHeader(http.StatusUnauthorized)
 			rw.Write(who)
@@ -220,7 +213,7 @@ func main() {
 		json.NewEncoder(rw).Encode(TortoMap(torList))
 	}).Methods(http.MethodPost)
 
-	Delete.HandleFunc("/ip/country/{country:}", func(rw http.ResponseWriter, r *http.Request) {
+	Delete.HandleFunc("/ip/country/{country}", func(rw http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("access_key") == "" {
 			rw.WriteHeader(http.StatusUnauthorized)
 			rw.Write(who)
@@ -317,7 +310,13 @@ func main() {
 
 	}()
 	go http.ListenAndServe(":"+*RestAPIPort, router)
-
+	go func() {
+		for {
+			log.Info("Start tor Health check")
+			HealthCheck(torList)
+			time.Sleep(2 * time.Hour)
+		}
+	}()
 	cmd := exec.Command(*Privoxy, "--no-daemon", privoxyConf)
 	log.Printf("Running privoxy...")
 	err = cmd.Start()
