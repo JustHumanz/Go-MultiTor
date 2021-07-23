@@ -23,7 +23,7 @@ func HealthCheck(t []TorStruct) {
 		})
 		if err != nil || res.StatusCode != http.StatusOK {
 			log.WithFields(log.Fields{
-				"Error":   err.Error(),
+				"Error":   err,
 				"IP Addr": v.IPAddr,
 				"Country": v.Country,
 			}).Info("Delete dirty circuit")
