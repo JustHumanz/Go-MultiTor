@@ -53,7 +53,7 @@ var ProxyPort = flag.String("proxy", "8080", "http proxy port")
 var RestAPIPort = flag.String("api", "2525", "rest api port")
 var Privoxy = flag.String("privoxy", "/usr/bin/privoxy", "privoxy binary file")
 var socksLBPort = flag.String("lb", "1412", "socks5 load balancing port")
-var LBalgo = flag.String("lbalgp", "rr", "choice algorithm for loadbalancing,rr(round robin)&lcrr(least connetion round robin)")
+var LBalgo = flag.String("lbalgp", "rr", "choice algorithm for loadbalancing,rr(round robin)&lc(least connetion)")
 var ifconfig = "https://ipinfo.io"
 var PortUsage = 9090
 var ipInfoOri IpinfoIo
@@ -274,7 +274,7 @@ func main() {
 			}
 			go func() {
 				TorCir := func() *TorStruct {
-					if *LBalgo == "lcrr" {
+					if *LBalgo == "lc" {
 						return GetTorLBWeight(torList)
 					} else {
 						return GetTorLB(torList)
