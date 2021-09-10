@@ -31,8 +31,6 @@ type TorStruct struct {
 	IPAddr  string
 	Country string
 	City    string
-	Load    int
-	Active  bool
 }
 
 func (p *TorStruct) AddCountry(new string) *TorStruct {
@@ -279,7 +277,7 @@ func main() {
 					"Tor IP":         TorCir.IPAddr,
 					"Source Address": conn.LocalAddr().String(),
 					"Socks5 Address": addr,
-					"Circuit Load":   TorCir.Load,
+					//"Circuit Load":   TorCir.Load,
 				}).Info("Tcp load balancer")
 
 				conn2, err := net.DialTimeout("tcp", addr, 10*time.Second)
@@ -304,7 +302,6 @@ func main() {
 				io.Copy(conn, conn2)
 				conn2.Close()
 				conn.Close()
-				TorCir.SetActive(false)
 			}()
 		}
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
@@ -120,11 +119,6 @@ func (p TorStruct) DeleteCircuit() {
 	p.TorList.Close()
 }
 
-func (i *TorStruct) SetActive(new bool) *TorStruct {
-	i.Active = new
-	return i
-}
-
 func RemoveTorList(s []TorStruct, index int) []TorStruct {
 	return append(s[:index], s[index+1:]...)
 }
@@ -133,26 +127,13 @@ var Counter = 0
 
 //GetTorLB Get one tor slice
 func GetTorLB(i []TorStruct) *TorStruct {
+	Circuit := i[Counter]
 	Counter++
-	if Counter > len(i) {
-		y := i[0].Load
-		index := 0
-		for i, v := range i {
-			if v.Load < y && !v.Active {
-				y = v.Load
-				index = i
-			}
-		}
-		i[index].Load++
-		i[index].SetActive(true)
-		return &i[index]
-	} else {
-		//Bootstrapping
-		n := rand.Int() % len(i)
-		i[n].Load++
-		i[n].SetActive(true)
-		return &i[n]
+
+	if Counter >= (len(i)) {
+		Counter = 0
 	}
+	return &Circuit
 }
 
 type IpinfoIo struct {
