@@ -31,6 +31,7 @@ type TorStruct struct {
 	IPAddr  string
 	Country string
 	City    string
+	Load    int
 }
 
 func (p *TorStruct) AddCountry(new string) *TorStruct {
@@ -52,6 +53,7 @@ var ProxyPort = flag.String("proxy", "8080", "http proxy port")
 var RestAPIPort = flag.String("api", "2525", "rest api port")
 var Privoxy = flag.String("privoxy", "/usr/bin/privoxy", "privoxy binary file")
 var socksLBPort = flag.String("lb", "1412", "socks5 load balancing port")
+var LBalgo = flag.String("lbalgp", "rr", "choice algorithm for loadbalancing,rr(round robin)&wrr(weighted round robin)")
 var ifconfig = "https://ipinfo.io"
 var PortUsage = 9090
 var ipInfoOri IpinfoIo
@@ -271,13 +273,20 @@ func main() {
 				continue
 			}
 			go func() {
-				TorCir := GetTorLB(torList)
+				TorCir := func() *TorStruct {
+					if *LBalgo == "wrr" {
+						return GetTorLBWeight(torList)
+					} else {
+						return GetTorLB(torList)
+					}
+				}()
+
 				addr := "localhost:" + TorCir.Port
 				log.WithFields(log.Fields{
 					"Tor IP":         TorCir.IPAddr,
 					"Source Address": conn.LocalAddr().String(),
 					"Socks5 Address": addr,
-					//"Circuit Load":   TorCir.Load,
+					"Circuit Load":   TorCir.Load,
 				}).Info("Tcp load balancer")
 
 				conn2, err := net.DialTimeout("tcp", addr, 10*time.Second)

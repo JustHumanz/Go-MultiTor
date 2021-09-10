@@ -133,6 +133,24 @@ func GetTorLB(i []TorStruct) *TorStruct {
 	if Counter >= (len(i)) {
 		Counter = 0
 	}
+
+	Circuit.Load++
+	return &Circuit
+}
+
+func GetTorLBWeight(i []TorStruct) *TorStruct {
+	Circuit := TorStruct{}
+	for j := 0; j < len(i); j++ {
+		currenCir := i[j]
+		nextCir := i[j+1]
+
+		if nextCir.Load <= currenCir.Load {
+			nextCir.Load++
+			Circuit = nextCir
+			break
+		}
+	}
+
 	return &Circuit
 }
 
