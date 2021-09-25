@@ -8,14 +8,8 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"os"
-	"os/exec"
-	"os/signal"
-	"path"
 	"strconv"
 	"strings"
-	"syscall"
-	"text/template"
 	"time"
 
 	"github.com/cretz/bine/tor"
@@ -49,15 +43,12 @@ var torCircuit = flag.Int("circuit", 10, "total of torCircuit")
 var renewIP = flag.Int("lifespan", 10, "duration of tor ip address")
 var exitNode = flag.String("exitnode", "", "specific country torCircuit")
 var hostNode = flag.String("host", "0.0.0.0", "hostname or ip address")
-var ProxyPort = flag.String("proxy", "8080", "http proxy port")
 var RestAPIPort = flag.String("api", "2525", "rest api port")
-var Privoxy = flag.String("privoxy", "/usr/bin/privoxy", "privoxy binary file")
 var socksLBPort = flag.String("lb", "1412", "socks5 load balancing port")
 var LBalgo = flag.String("lbalgp", "rr", "choice algorithm for loadbalancing,rr(round robin)&lc(least connetion)")
 var ifconfig = "https://ipinfo.io"
 var PortUsage = 9090
 var ipInfoOri IpinfoIo
-var privoxyConf string
 var acessKey = flag.String("key", "", "add api key,if key empty key will be created")
 
 var who, _ = base64.StdEncoding.DecodeString(img)
@@ -79,36 +70,6 @@ func init() {
 		log.Fatalln(err)
 	}
 	json.Unmarshal(bodyNormal, &ipInfoOri)
-
-	pathnow, err := os.Getwd()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	pathnow += "/privoxy"
-	var filepath = path.Join(pathnow, "/config.template")
-
-	privoxyConf = pathnow + "/privoxy.conf"
-	f, err := os.OpenFile(privoxyConf, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	tmpl, err := template.ParseFiles(filepath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = tmpl.Execute(f, map[string]interface{}{
-		"PrivoxyTor":     *hostNode + ":" + *socksLBPort,
-		"PrivoxyConf":    pathnow,
-		"PrivoxyListen":  *hostNode + ":" + *ProxyPort,
-		"PrivoxyLog":     pathnow,
-		"PrivoxyLogName": time.Now().Format("2006-01-02") + ".log",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func main() {
@@ -129,7 +90,6 @@ func main() {
 			"Date": time.Now(),
 			"Proxy": map[string]interface{}{
 				"Socks5": "socks5://" + *hostNode + ":" + *socksLBPort,
-				"HTTP":   "http://" + *hostNode + ":" + *ProxyPort,
 			},
 		})
 	})
@@ -315,7 +275,7 @@ func main() {
 		}
 
 	}()
-	go http.ListenAndServe(":"+*RestAPIPort, router)
+
 	go func() {
 		for {
 			log.Info("Start tor Health check")
@@ -323,28 +283,8 @@ func main() {
 			time.Sleep(2 * time.Hour)
 		}
 	}()
-	cmd := exec.Command(*Privoxy, "--no-daemon", privoxyConf)
-	log.Printf("Running privoxy...")
-	err = cmd.Start()
-	if err != nil {
-		log.Error(err)
-	}
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	shutdown := make(chan int)
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-sigChan
-		for _, v := range torList {
-			v.DeleteCircuit()
-		}
-		log.Warn("Shutting down...")
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
-		shutdown <- 1
-	}()
-
-	<-shutdown
+	http.ListenAndServe(":"+*RestAPIPort, router)
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789=-_"
@@ -355,4 +295,9 @@ func RandStringBytes(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func (i *TorStruct) TorStructLoad() *TorStruct {
+	i.Load++
+	return i
 }

@@ -127,26 +127,24 @@ var Counter = 0
 
 //GetTorLB Get one tor slice
 func GetTorLB(i []TorStruct) *TorStruct {
-	Circuit := i[Counter]
+	Circuit := i[Counter].TorStructLoad()
 	Counter++
 
 	if Counter >= (len(i)) {
 		Counter = 0
 	}
 
-	Circuit.Load++
-	return &Circuit
+	return Circuit
 }
 
 func GetTorLBWeight(i []TorStruct) *TorStruct {
 	Circuit := TorStruct{}
 	for j := 0; j < len(i); j++ {
 		currenCir := i[j]
-		nextCir := i[j+1]
+		nextCir := i[j+1].TorStructLoad()
 
 		if nextCir.Load <= currenCir.Load {
-			nextCir.Load++
-			Circuit = nextCir
+			Circuit = *nextCir
 			break
 		}
 	}

@@ -9,48 +9,50 @@ this tools was inspired by [multitor](https://github.com/trimstray/multitor),but
 ### Workflow
 
 ```
-
-                                                           ┌───────────────────────┐
-                                                           │                       │
-                                                           │      Mux (Rest api)   │
-                                    ┌──────────────────────┤                       ├───────────────────────────┐
-                                    │                      │       Controller      │                           │
-                                    │                      │                       │                           │
-                                    │                      └────────────┬──────────┘                           │
-                                    │                                   │                                      │
-                                    │                                   │                                      │
-                                    │                                   │                                      │
-                                    │                                   │                                      │
-                                    │                                   │                                      │
-                                    │                                   │                                 xxxxx│xxxxxxxxxx
-                                    │                                   │                                 x ┌──┴─────┐   x
-                                    │                                   │                                 x │        │   x
-                                    │                                   │                                 x │ Tor    │   x
-                             ┌──────┴──────┐                            │                ┌────────────────x─┤        │   x
-                             │             │                            │                │                x └────────┘   x
-                             │  Privoxy    │                            │                │                x  Tor cluster x
-                             │             │            ┌───────────────┴────────────────┤                x ┌────────┐   x
-                             │             │            │                                │                x │        │   x
-Internet────────────────────►│  HTTP proxy ├────────────┤        Socks5 tcp balancer     ├────────────────x─┤ Tor    │   x
-                             │             │            │                                │                x │        │   x
-                             │             │            └────────────────────────────────┤                x └────────┘   x
-                             │             │                                             │                x              x
-                             │             │                                             │                x ┌────────┐   x
-                             │             │                                             │                x │        │   x
-                             └─────────────┘                                             └────────────────x─┤ Tor    │   x
-                                                                                                          x │        │   x
-                                                                                                          x └────────┘   x
-                                                                                                          xxxxxxxxxxxxxxxx
-                                                                                                           
+                            ┌───────────────────────┐
+                            │                       │
+                            │      Mux (Rest api)   │
+            ┌───────────────┤                       ├───────────────────────────┐
+            |               │       Controller      │                           │
+            |               │                       │                           │
+            |               └────────────┬──────────┘                           │
+            |                            │                                      │
+            |                            │                                      │
+            |                            │                                      │
+            |                            │                                      │
+            |                            │                                      │
+            |                            │                                 xxxxx│xxxxxxxxxx
+            |                            │                                 x ┌──┴─────┐   x
+            |                            │                                 x │        │   x
+            |                            │                                 x │ Tor    │   x
+            |                            │                ┌────────────────x─┤        │   x
+            │                            │                │                x └────────┘   x
+            │                            │                │                x  Tor cluster x
+            ^            ┌───────────────┴────────────────┤                x ┌────────┐   x
+            │            |                                │                x │        │   x
+ Internet   ├────────────┤  Socks5 tcp loac balancer      ├────────────────x─┤ Tor    │   x
+                         │                                │                x │        │   x
+                         └────────────────────────────────┤                x └────────┘   x
+                                                          │                x              x
+                                                          │                x ┌────────┐   x
+                                                          │                x │        │   x
+                                                          └────────────────x─┤ Tor    │   x
+                                                                           x │        │   x
+                                                                           x └────────┘   x
+                                                                           xxxxxxxxxxxxxxxx
+                                                                            
 
 ```
-Create a bunch of tor circuit > load balancing theme with round robin > serve as http proxy with privoxy  
+Create a bunch of tor circuit > load balancing theme with round robin > serve as ~~http~~ socks5 proxy  
 then i create controller,the role of controller is create/delete tor circuit
 
 ### Requirement
 - tor
 - go1.16.5 linux/amd64
 - privoxy
+
+### Rest API
+soon
 
 ### Features
 - [x] Scalable tor circuit
