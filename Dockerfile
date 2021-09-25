@@ -4,7 +4,7 @@ WORKDIR /app
 RUN go build -o MultiTOR
 
 FROM alpine
-RUN apk update --no-cache
+RUN apk update --no-cache && apk add tor
 RUN adduser -D app
 WORKDIR /home/app
 COPY --from=builder /app/MultiTOR .  
