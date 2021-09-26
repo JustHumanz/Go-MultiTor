@@ -8,7 +8,12 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+//HealthCheck tor circuit checker
 func HealthCheck(t []TorStruct) {
+	log.WithFields(log.Fields{
+		"Len": len(t),
+	}).Info("Start check tor circuit")
+
 	for i, v := range t {
 		dialSocksProxy, err := proxy.SOCKS5("tcp", *hostNode+":"+v.Port, nil, proxy.Direct)
 		if err != nil {
@@ -27,7 +32,16 @@ func HealthCheck(t []TorStruct) {
 				"IP Addr": v.IPAddr,
 				"Country": v.Country,
 			}).Info("Delete dirty circuit")
+			v.DeleteCircuit()
 			t = RemoveTorList(t, i)
+
+			log.Info("Request new tor circuit")
+			newTor, err := initTor(1)
+			if err != nil {
+				log.Error(err)
+			}
+			t = append(t, newTor...)
+
 		} else {
 			log.WithFields(log.Fields{
 				"IP Addr": v.IPAddr,

@@ -28,7 +28,7 @@ this tools was inspired by [multitor](https://github.com/trimstray/multitor),but
             |                            │                ┌────────────────x─┤        │   x
             │                            │                │                x └────────┘   x
             │                            │                │                x  Tor cluster x
-            ^            ┌───────────────┴────────────────┤                x ┌────────┐   x
+            │            ┌───────────────┴────────────────┤                x ┌────────┐   x
             │            |                                │                x │        │   x
  Internet   ├────────────┤  Socks5 tcp load balancer      ├────────────────x─┤ Tor    │   x
                          │                                │                x │        │   x
