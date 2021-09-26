@@ -44,7 +44,6 @@ this tools was inspired by [multitor](https://github.com/trimstray/multitor),but
 
 ```
 Create a bunch of tor circuit > load balancing theme with round robin > serve as ~~http~~ socks5 proxy  
-then i create controller,the role of controller is create/delete tor circuit
 
 ### Requirement
 - tor

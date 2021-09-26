@@ -57,7 +57,15 @@ func init() {
 	flag.Parse()
 	Secret := ""
 	if *acessKey == "" {
-		Secret = RandStringBytes(32)
+		const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789=-_"
+		Secret = func(n int) string {
+			b := make([]byte, n)
+			for i := range b {
+				b[i] = letterBytes[rand.Intn(len(letterBytes))]
+			}
+			return string(b)
+		}(36)
+
 	} else {
 		Secret = *acessKey
 	}
@@ -285,16 +293,6 @@ func main() {
 	}()
 
 	http.ListenAndServe(":"+*RestAPIPort, router)
-}
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789=-_"
-
-func RandStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
 }
 
 func (i *TorStruct) TorStructLoad() *TorStruct {
