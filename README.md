@@ -30,7 +30,7 @@ this tools was inspired by [multitor](https://github.com/trimstray/multitor),but
             │                            │                │                x  Tor cluster x
             ^            ┌───────────────┴────────────────┤                x ┌────────┐   x
             │            |                                │                x │        │   x
- Internet   ├────────────┤  Socks5 tcp loac balancer      ├────────────────x─┤ Tor    │   x
+ Internet   ├────────────┤  Socks5 tcp load balancer      ├────────────────x─┤ Tor    │   x
                          │                                │                x │        │   x
                          └────────────────────────────────┤                x └────────┘   x
                                                           │                x              x
@@ -48,8 +48,8 @@ then i create controller,the role of controller is create/delete tor circuit
 
 ### Requirement
 - tor
-- go1.16.5 linux/amd64
-- privoxy
+- go1.16.5 linux/amd64 or latest
+- ~~privoxy~~
 
 ### Use
 ```
