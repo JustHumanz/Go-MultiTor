@@ -1,4 +1,4 @@
-module github.com/justhumanz/MultiTorGo
+module github.com/JustHumanz/Go-MultiTor
 
 go 1.16
 
