@@ -49,11 +49,14 @@ then i create controller,the role of controller is create/delete tor circuit
 ### Requirement
 - tor
 - go1.16.5 linux/amd64
-- privoxy
 
 ### Use
+Deploy
 ```
 docker run -it -d -p 1412:1412 -p 2525:2525 --name=go-multitor justhumanz/go-multitor
+```
+Test
+```
 while true;do curl -x socks5://localhost:1412 https://ifconfig.me;printf "\n";done
 ```
 
