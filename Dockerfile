@@ -1,4 +1,5 @@
 FROM golang:alpine as builder
+RUN apk update --no-cache && apk add git
 COPY . /app
 WORKDIR /app
 RUN go build -o MultiTOR
