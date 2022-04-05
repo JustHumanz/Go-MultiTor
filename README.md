@@ -30,7 +30,7 @@ this tools was inspired by [multitor](https://github.com/trimstray/multitor),but
             │                            │                │                x  Tor cluster x
             │            ┌───────────────┴────────────────┤                x ┌────────┐   x
             │            |                                │                x │        │   x
- Internet   ├────────────┤  Socks5 tcp load balancer      ├────────────────x─┤ Tor    │   x
+ User       ├────────────┤  Socks5 tcp load balancer      ├────────────────x─┤ Tor    │   x
                          │                                │                x │        │   x
                          └────────────────────────────────┤                x └────────┘   x
                                                           │                x              x
@@ -47,12 +47,15 @@ Create a bunch of tor circuit > load balancing theme with round robin > serve as
 
 ### Requirement
 - tor
-- go1.16.5 linux/amd64 or latest
-- ~~privoxy~~
+- go1.16.5 linux/amd64
 
 ### Use
+Deploy
 ```
 docker run -it -d -p 1412:1412 -p 2525:2525 --name=go-multitor justhumanz/go-multitor
+```
+Test
+```
 while true;do curl -x socks5://localhost:1412 https://ifconfig.me;printf "\n";done
 ```
 
