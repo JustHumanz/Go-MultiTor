@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,6 +15,30 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/proxy"
 )
+
+type TorStruct struct {
+	TorList *tor.Tor
+	Port    string
+	IPAddr  string
+	Country string
+	City    string
+	Load    int
+}
+
+func (p *TorStruct) AddCountry(new string) *TorStruct {
+	p.Country = new
+	return p
+}
+
+func (p *TorStruct) AddIP(new string) *TorStruct {
+	p.IPAddr = new
+	return p
+}
+
+func (i *TorStruct) TorStructLoad() *TorStruct {
+	i.Load++
+	return i
+}
 
 func initTor(n int) ([]TorStruct, error) {
 	var TorList []TorStruct
@@ -26,7 +52,12 @@ func initTor(n int) ([]TorStruct, error) {
 			Time := *renewIP * 60
 			Args := []string{"SOCKSPort", Port, "MaxCircuitDirtiness", strconv.Itoa(Time)}
 			if *exitNode != "" {
-				Args = append(Args, "StrictNodes", "1", "ExitNodes", "{"+*exitNode+"}")
+				exitNodeSlice := []string{}
+				for _, v := range strings.Split(*exitNode, ",") {
+					exitNodeSlice = append(exitNodeSlice, fmt.Sprintf("{%s}", v))
+				}
+
+				Args = append(Args, "StrictNodes", "1", "ExitNodes", strings.Join(exitNodeSlice, ","))
 			}
 
 			t, err := tor.Start(context.Background(), &tor.StartConf{
@@ -36,8 +67,7 @@ func initTor(n int) ([]TorStruct, error) {
 				RetainTempDataDir: false,
 			})
 			if err != nil {
-				log.Error(err)
-				return
+				log.Fatal(err)
 			}
 			log.WithFields(log.Fields{
 				"Args": Args,
@@ -45,8 +75,7 @@ func initTor(n int) ([]TorStruct, error) {
 
 			dialSocksProxy, err := proxy.SOCKS5("tcp", *hostNode+":"+Port, nil, proxy.Direct)
 			if err != nil {
-				log.Error(err)
-				return
+				log.Fatal(err)
 			}
 			tr := &http.Transport{Dial: dialSocksProxy.Dial}
 			body, _, err := Curl(&http.Client{
@@ -54,8 +83,7 @@ func initTor(n int) ([]TorStruct, error) {
 				Timeout:   1 * time.Minute,
 			})
 			if err != nil {
-				log.Error(err)
-				return
+				log.Fatal(err)
 			}
 			var ipInfo IpinfoIo
 

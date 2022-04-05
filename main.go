@@ -12,41 +12,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cretz/bine/tor"
 	"github.com/gorilla/mux"
 	muxlogrus "github.com/pytimer/mux-logrus"
 
 	log "github.com/sirupsen/logrus"
 )
 
-type TorStruct struct {
-	TorList *tor.Tor
-	Port    string
-	IPAddr  string
-	Country string
-	City    string
-	Load    int
-}
-
-func (p *TorStruct) AddCountry(new string) *TorStruct {
-	p.Country = new
-	return p
-}
-
-func (p *TorStruct) AddIP(new string) *TorStruct {
-	p.IPAddr = new
-	return p
-}
+const ifconfig string = "https://ipinfo.io"
 
 var torPath = flag.String("tor", "/usr/bin/tor", "path of tor binary file")
 var torCircuit = flag.Int("circuit", 10, "total of torCircuit")
-var renewIP = flag.Int("lifespan", 10, "duration of tor ip address")
-var exitNode = flag.String("exitnode", "", "specific country torCircuit")
+var renewIP = flag.Int("lifeSpan", 10, "duration of tor ip address")
+var exitNode = flag.String("exitNode", "", "specific country torCircuit (separated by comma)")
 var hostNode = flag.String("host", "0.0.0.0", "hostname or ip address")
-var RestAPIPort = flag.String("api", "2525", "rest api port")
-var socksLBPort = flag.String("lb", "1412", "socks5 load balancing port")
-var LBalgo = flag.String("lbalgp", "rr", "choice algorithm for loadbalancing,rr(round robin)&lc(least connetion)")
-var ifconfig = "https://ipinfo.io"
+var RestAPIPort = flag.String("apiPort", "2525", "rest api port")
+var socksLBPort = flag.String("lbPort", "1412", "socks5 load balancing port")
+var LBalgo = flag.String("lbAlgo", "rr", "choice algorithm for loadbalancing,rr(round robin)&lc(least connetion)")
 var PortUsage = 9090
 var ipInfoOri IpinfoIo
 var acessKey = flag.String("key", "", "add api key,if key empty key will be created")
@@ -54,33 +35,37 @@ var acessKey = flag.String("key", "", "add api key,if key empty key will be crea
 var who, _ = base64.StdEncoding.DecodeString(img)
 
 func init() {
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
+}
+
+func main() {
 	flag.Parse()
 	Secret := ""
 	if *acessKey == "" {
 		const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789=-_"
-		Secret = func(n int) string {
-			b := make([]byte, n)
+		Secret = func() string {
+			b := make([]byte, 36)
 			for i := range b {
 				b[i] = letterBytes[rand.Intn(len(letterBytes))]
 			}
 			return string(b)
-		}(36)
+		}()
 
 	} else {
 		Secret = *acessKey
 	}
 
-	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
 	log.Info("Aceess key ", Secret, " add this key into http header as 'access_key'")
 
 	bodyNormal, _, err := Curl(&http.Client{})
 	if err != nil {
 		log.Fatalln(err)
 	}
-	json.Unmarshal(bodyNormal, &ipInfoOri)
-}
+	err = json.Unmarshal(bodyNormal, &ipInfoOri)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-func main() {
 	torList, err := initTor(*torCircuit)
 	if err != nil {
 		log.Error(err)
@@ -293,9 +278,4 @@ func main() {
 	}()
 
 	http.ListenAndServe(":"+*RestAPIPort, router)
-}
-
-func (i *TorStruct) TorStructLoad() *TorStruct {
-	i.Load++
-	return i
 }
