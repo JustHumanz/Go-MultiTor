@@ -57,7 +57,7 @@ func initTor(n int) ([]TorStruct, error) {
 					exitNodeSlice = append(exitNodeSlice, fmt.Sprintf("{%s}", v))
 				}
 
-				Args = append(Args, "StrictNodes", "1", "ExitNodes", strings.Join(exitNodeSlice, ","))
+				Args = append(Args, "StrictNodes", "1", "ExitNodes", strings.Join(exitNodeSlice, ","), "Log", "debug")
 			}
 
 			t, err := tor.Start(context.Background(), &tor.StartConf{
@@ -77,17 +77,22 @@ func initTor(n int) ([]TorStruct, error) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			tr := &http.Transport{Dial: dialSocksProxy.Dial}
+
 			body, _, err := Curl(&http.Client{
-				Transport: tr,
-				Timeout:   1 * time.Minute,
+				Transport: &http.Transport{Dial: dialSocksProxy.Dial},
 			})
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err)
+				t.Close()
+				return
 			}
+
 			var ipInfo IpinfoIo
 
-			json.Unmarshal(body, &ipInfo)
+			err = json.Unmarshal(body, &ipInfo)
+			if err != nil {
+				log.Error(err)
+			}
 
 			log.WithFields(log.Fields{
 				"RealIP":  ipInfoOri.IP,
